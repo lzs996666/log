@@ -1,0 +1,26 @@
+检测所有磁盘
+for i in  `lsblk  | awk  '/^s/ {print "/dev/"$1}'`
+do
+echo $i
+smartctl -a  $i  | grep  'Model Family'
+smartctl -i  $i  | grep  'Device Model'
+smartctl -i  $i  | grep -i  'Serial Number'
+smartctl -H  $i  | grep  'SMART overall-health'
+name=`smartctl -i  $i  | grep  'Serial Number'  | awk  '{print $3}'`
+sas3ircu 0 display   | grep -B 8 $name    | head -2
+echo
+echo
+done
+
+
+
+
+开启所有识别的到的所有定位
+bb=`sas3ircu 0 display  | grep  -E 'Enclosure #'  | awk  'NR == 1{ print $4}'`
+for i in `sas3ircu 0 display  | grep  -E 'Slot #'  | awk  '{print $4}'`; do  sas3ircu 0 locate $bb:$i on  ; done
+
+
+关闭所有识别的到的磁盘定位
+bb=`sas3ircu 0 display  | grep  -E 'Enclosure #'  | awk  'NR == 1{ print $4}'`
+for i in `sas3ircu 0 display  | grep  -E 'Slot #'  | awk  '{print $4}'`; do  sas3ircu 0 locate $bb:$i off  ; done
+
